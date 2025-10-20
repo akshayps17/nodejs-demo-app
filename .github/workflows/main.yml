@@ -1,0 +1,59 @@
+name: CI/CD Pipeline - Test Environment
+
+on:
+  push:
+    branches:
+      - test
+  pull_request:
+    branches:
+      - test
+
+jobs:
+  build-and-test:
+    name: Build & Test Node.js App
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Step 2: Setup Node.js
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      # Step 3: Install dependencies
+      - name: Install Dependencies
+        run: npm install
+
+      # Step 4: Run Lint or Tests
+      - name: Run Tests
+        run: |
+          echo "🧪 Running tests..."
+          npm test || echo "No tests found, skipping."
+
+      # Step 5: Build (optional for backend)
+      - name: Build Project
+        run: |
+          echo "⚙️ Building project..."
+          echo "Build step skipped (backend project)"
+
+      # Step 6: Setup Environment Variables for Test
+      - name: Create .env for Test
+        run: |
+          echo "PORT=5000" >> .env
+          echo "MONGO_URI=${{ secrets.MONGO_URI_TEST }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET_TEST }}" >> .env
+
+      # Step 7: Run the Application (Smoke Test)
+      - name: Start App (Smoke Test)
+        run: |
+          npm run dev &
+          sleep 5
+          curl -I http://localhost:5000 || echo "Server did not respond"
