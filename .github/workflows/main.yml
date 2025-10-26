@@ -2,9 +2,9 @@ name: CI/CD - Docker Build & Push
 
 on:
   push:
-    branches: [ test ]
+    branches: [ main ]
   pull_request:
-    branches: [ test ]
+    branches: [ main ]
 
 env:
   IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/node-login-module
